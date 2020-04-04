@@ -1,0 +1,87 @@
+<!doctype html>
+  <html>
+      <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous" />
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js" integrity="sha256-TQq84xX6vkwR0Qs1qH5ADkP+MvH0W+9E7TdHJsoIQiM=" crossorigin="anonymous"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/chartkick/2.3.0/chartkick.min.js" integrity="sha256-pKi+C/L3JqiD10GzkevwyZ+pUZuKi5BxbPZiCg/Val4=" crossorigin="anonymous"></script>
+          <title>Coronavirus statistics and information</title>
+          <style>
+            .card {
+                text-align: center;
+            }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="row">
+                  <h2>World Stats
+                    <small>as of <%= @calc.most_recent_day %></small>
+                  </h2>
+              </div>
+              <div class="row">
+                <%= stat_card(@calc.total_cases(:confirmed), 'Total confirmed cases') %>
+                <%= stat_card(@calc.total_cases(:deaths), 'Total deaths') %>
+                <%= stat_card(@calc.total_cases(:recovered), 'Confirmed recoveries') %>
+                <%= stat_card(@calc.diff_cases(:confirmed), "Today's confirmed cases") %>
+                <%= stat_card(@calc.diff_cases(:deaths), "Today's deaths") %>
+                <%= stat_card(@calc.diff_cases(:recovered), "Today's confirmed recoveries") %>
+              </div>
+              <div class="row">
+                <%= graph_card 'Confirmed infection history', @calc.cases_by_date(:confirmed), label: 'Infected' %>
+                <%= graph_card 'Deaths history', @calc.cases_by_date(:deaths), label: 'Deaths' %>
+              </div>
+              <div class="row">
+                <%= graph_card 'Confirmed recovery history', @calc.cases_by_date(:recovered), label: 'Recovered' %>
+                <%= line_card 'Daily change', @calc.daily_change %>
+              </div>
+              <div class="row">
+                <%= graph_card(
+                  'Mortality (deaths / total confirmed infected)',
+                  (@calc.cases_by_date(:deaths) / @calc.cases_by_date(:confirmed)).as_percent,
+                  label: 'Mortality Rate', suffix: '%'
+                ) %>
+                <%= graph_card(
+                  'Recovery rate (recoveries / total infected)',
+                  (@calc.cases_by_date(:recovered) / @calc.cases_by_date(:confirmed)).as_percent,
+                  label: 'Recovery Rate', suffix: '%'
+                ) %>
+              </div>
+              <div class="row">
+                <%= graph_card(
+                  'Active known cases',
+                  @calc.cases_by_date(:confirmed) - @calc.cases_by_date(:recovered) - @calc.cases_by_date(:deaths),
+                  label: 'Active cases'
+                ) %>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 col-md-6 col-lg-6">
+                    <h2>Total by country</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Infected</th>
+                                <th>Deaths</th>
+                                <th>Recovered</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @calc.by_country.each do |calc|%>
+                                <tr>
+                                    <td data-label="Country"><a href="<%= calc.slug %>.html"><%= calc.name %></a></td>
+                                    <td data-label="Infected"><%= calc.total_cases(:confirmed) %></td>
+                                    <td data-label="Deaths"><%= calc.total_cases(:deaths) %></td>
+                                    <td data-label="Recoverd"><%= calc.total_cases(:recovered) %></td>
+                                    <td data-label="Active"><%= calc.total_cases(:confirmed) - calc.total_cases(:deaths) - calc.total_cases(:recovered) %></td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+          </div>
+      </body>
+  </html>
